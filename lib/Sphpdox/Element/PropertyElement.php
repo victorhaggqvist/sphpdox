@@ -40,7 +40,15 @@ class PropertyElement extends Element
     {
         $line = '';
         $line .= $this->getVisibilityModifier() . ' ';
-        $line .= $this->getTypeModifier() . ' ';
+
+        $clearNamespace = preg_replace("/[^\w\\\]/", '', $this->getTypeModifier());
+
+        $referenceName = strtolower(
+            trim( str_replace("\\", "-", $clearNamespace), '-' )
+        );
+        $label = str_replace("\\", "\\\\", $this->getTypeModifier());
+
+        $line.= ":ref:`{$label} <$referenceName>`";
         $line = trim($line);
 
         if ($line) {
@@ -61,9 +69,9 @@ class PropertyElement extends Element
     protected function getTypeModifier()
     {
         $vars = $this->getParser()->getAnnotationsByName('var');
+
         $var = count($vars) ? array_pop($vars) : false;
         $parts = preg_split('/\s+/', $var);
-
         if (count($parts) >= 2) {
             if ($parts[1]) {
                 return $parts[1];

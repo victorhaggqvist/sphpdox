@@ -63,4 +63,11 @@ abstract class Element
 
         return $output;
     }
+
+    protected function create_reference($name)
+    {
+        $name = str_replace('\\', '-', $nama);
+
+        return ":ref:`$name`";
+    }
 }

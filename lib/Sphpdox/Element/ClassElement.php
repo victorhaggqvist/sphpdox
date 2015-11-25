@@ -12,6 +12,9 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class ClassElement extends Element
 {
+
+    protected $nameReferences;
+
     /**
      * @var ReflectionClass
      */
@@ -26,6 +29,8 @@ class ClassElement extends Element
     public function __construct(ReflectionClass $reflection)
     {
         parent::__construct($reflection);
+
+        $this->nameReferences = [];
     }
 
     public function getPath()
@@ -50,14 +55,16 @@ class ClassElement extends Element
     {
         $name = $this->reflection->getName();
 
+        $label = str_replace('\\', '-', $name);
         $title = str_replace('\\', '\\\\', $name);
         //$title = $name;
-
-        $string = str_repeat('-', strlen($title)) . "\n";
+        $string = ".. _$label:\n\n";
+        $string .= str_repeat('-', strlen($title)) . "\n";
         $string .= $title . "\n";
         $string .= str_repeat('-', strlen($title)) . "\n\n";
         $string .= $this->getNamespaceElement();
-        
+        $string .= $this->getInheritanceTree();
+
         if ($this->reflection->isInterface()){
         	$string .= '.. php:interface:: ' ;
         } elseif ($this->reflection->isTrait()){
@@ -128,5 +135,29 @@ class ClassElement extends Element
         return '.. php:namespace: '
             . str_replace('\\', '\\\\', $this->reflection->getNamespaceName())
             . "\n\n";
+    }
+
+    public function getInheritanceTree()
+    {
+
+        $parent_entries = [];
+
+        $parents = $this->reflection->getParentClassNameList();
+        $currentNamespace = $this->reflection->getNamespaceName();
+
+        if( !empty($parents) ) {
+            foreach ($parents as $key => $parent) {
+                $string = ':ref:`';
+                $string .= str_replace('\\', '-', $parent) . "`";
+                $parent_entries[] = $string;
+            }
+        } else {
+            return "";
+        }
+
+        $refs = join(' => ', $parent_entries);
+        $title = "**Inheritance Hierarchy:**\n";
+
+        return "$title$refs\n\n";
     }
 }
